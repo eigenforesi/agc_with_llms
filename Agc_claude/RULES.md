@@ -1,0 +1,1 @@
+In this file, rules for how Claude should behave in the Sandbox will be established.
