@@ -1,0 +1,11 @@
+The code given to you so far in the file Analysis.ipynb is an analysis pipeline, minus the statistical analysis.
+You will now start implementing the statistical analysis with cabinetry, by creating a workspace.
+First, check if cabinetry has been imported in the analysis file; if not, import it.
+The easiest way to create a cabinetry workspace is to start with a configuration object.  This is imported from a .yml file
+A configuration object is initialized like cabinetry.configuration.load("<path/to/config/file>")
+Print the ["Samples"] and ["Systematics"] elements of the config object.
+Then apply the methods:
+cabinetry.templates.collect(<config_object>)
+cabinetry.templates.postprocess(<config_object>)
+Then create a workspace object using cabinetry.workspace.build(<config_object>)
+This workspace is what you will use to do the rest of the statistical analysis.

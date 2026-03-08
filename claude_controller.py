@@ -118,8 +118,16 @@ class PromptDict:
     def getPrompt(self, index: int):
         return self.prompts[index]
     
+    # Find a prompt with a specific identifier, return the prompt object if found, else return None
+    def findPrompt(self, prompt_id: str):
+        for key, value in self.prompts.items():
+            if value.id == prompt_id:
+                return value
+        return None
+    
     # move a specific prompt with index i to another index j, shifting all the other prompts without reordering them
-    def relabelIndices():
+    # DO NOT IMPLEMENT FOR NOW
+    def relabelIndices(self):
         # implement here
         return 0
 
@@ -130,10 +138,26 @@ class PromptDict:
 
 # Ask user to type idenitifier and query
 def getIDQuery(directory: PromptDict):
-    identifier = input("Enter a unique identifier: ")
-    # Add check to see if directory already has this identifier, if yes ask for a different one
-    user_query = input("Enter query for Claude:\n>")
-    return identifier, user_query
+    # First ask user if they would like to manally enter prompt or import from a .txt file
+    method = input("Would you like to (1) manually enter a query or (2) import a query from a .txt file? (Enter 1 or 2): ")
+    if method == "1":
+        identifier = input("Enter a unique identifier: ")
+        # Add check to see if directory already has this identifier, if yes ask for a different one
+        while directory.findPrompt(identifier) is not None:
+            print("Identifier already exists in directory. Please enter a different one.")
+            identifier = input("Enter a unique identifier: ")
+        user_query = input("Enter query for Claude:\n>")
+        return identifier, user_query
+    elif method == "2":
+        filepath = '../queries/' + input("Enter the file path of the .txt file containing the query (relative to queries directory, without .txt): ") + '.txt'
+        try:
+            with open(filepath, "r", encoding="utf-8") as f:
+                user_query = f.read()
+            identifier = filepath.split("/")[-1].split(".")[0] # use the filename without .txt and directory name
+            return identifier, user_query
+        except FileNotFoundError:
+            print("File not found.")
+            return None, None
 
 # Give the query to Claude and get output and error logs, save as Prompt object
 def promptClaude(identifier: str, query: str):
@@ -150,6 +174,57 @@ def promptClaude(identifier: str, query: str):
     print("Saved prompt object")
     return prompt
 
+# Extract the unified diff from the output log of a prompt, if it exists, else return None
+def extractDiff(prompt: Prompt):
+    output = prompt.output
+    diff_start = output.find("```diff") # look for the start of the diff block, which should be denoted by ```diff
+    if diff_start == -1: # if no diff block is found, return None
+        return None
+    diff_end = output.find("```", diff_start + 6) # look for the end of the diff block, which should be denoted by ``` and should come after the start of the diff block
+    if diff_end == -1: # if no end of diff block is found, meaning the diff block is not closed properly, return None
+        return None
+    diff = output[diff_start + 7:diff_end].strip() # extract the diff from the output log, removing the ```diff and ``` markers, and stripping any leading or trailing whitespace
+    return diff
+
+# Implement the unified diff to the given files, pass it as a prompt to Claude to implement the changes.
+# CURRENTLY DOES NOT WORK
+def implementDiff(diff: str):
+    pre_prompt = """
+    The following unified diff describes changes that need to be made to the given file(s).
+    Please implement the changes described in the diff.
+    You have permission to edit the specified files as needed to implement these changes.  Do not edit any other files. \n
+    """
+    # Get list of files to be modified
+    files_to_modify = set()
+    for line in diff.splitlines():
+        if line.startswith("+++ ") or line.startswith("--- "):
+            filename = line[6:] # get the file path from the diff line, which should come after the "+++ " or "--- " marker and the "a/" or "b/" marker
+            filepath = "Claude_Sandbox/" + filename
+            files_to_modify.add(filepath)
+    # Append list of allowed files to edit to the pre-prompt 
+    pre_prompt += "You have permission to edit the following files: " + ", ".join(files_to_modify) + "\n\n"
+    # Now pass the pre_prompt and the diff as a prompt to Claude
+    full_prompt = pre_prompt + "Here is the unified diff:\n```diff\n" + diff + "\n```\n"
+    process = subprocess.run(
+        ["claude", "-p", full_prompt],
+        capture_output=True,
+        text=True
+    )
+    print("returncode:", process.returncode)
+    print("stdout:\n", process.stdout)
+    print("stderr:\n", process.stderr)
+
+def displayMainMenu():
+    print("Main menu options:")
+    print("1. Load new prompt archive")
+    print("2. Prompt Claude with query")
+    print("3. View all prompts")
+    print("4. [PLACEHOLDER] for analysis tools")
+    print("5. Export current directory")
+    print("6. Print specific prompt")
+    print("7. Implement diff from specific prompt")
+    print("Press 'q' to quit")
+    print("\n")
 
 # Main function, runs at the start of this python script
 def main():
@@ -160,19 +235,12 @@ def main():
     
     directory = PromptDict()
     
-    print("Main menu options:")
-    print("1. Load new prompt archive")
-    print("2. Prompt Claude with query")
-    print("3. View all prompts")
-    print("4. [PLACEHOLDER] for analysis tools")
-    print("5. Export current directory")
-    print("Press 'q' to quit")
-    print("\n")
+    displayMainMenu()
     
-    entry = input("Select a menu option:")
+    entry = input("Select a menu option: ")
     while entry != "q":
         selection = int(entry)
-        while selection not in range(1, 6):
+        while selection not in range(1, 10):
             selection = input("Invalid option.  Select again:")
         
         # Load new prompt archive from JSONL file into prompt directorys
@@ -206,17 +274,32 @@ def main():
             directory.exportToJsonl(filepath)
             print("Successfully exported current directory to " + filepath)
         
-        # Show main menu again
-        print("Main menu options:")
-        print("1. Load new prompt archive")
-        print("2. Prompt Claude with query")
-        print("3. View all prompts")
-        print("4. [PLACEHOLDER] for analysis tools")
-        print("5. Export current directory")
-        print("Press 'q' to quit")
-        print("\n")
+        # Prints a specific prompt the user specifies
+        if selection == 6:
+            promptid = input("Enter prompt ID to be printed: ")
+            prompt = directory.findPrompt(promptid)
+            if prompt is not None:
+                prompt.printPrompt(q_size=1000, o_size=1000, e_size=1000)
+            else:
+                print("Prompt with ID " + promptid + " not found in directory.")
+
+        # Implement diff from a specific prompt, if it exists
+        if selection == 7:
+            promptid = input("Enter prompt ID to extract diff from and implement: ")
+            prompt = directory.findPrompt(promptid)
+            if prompt is not None:
+                diff = extractDiff(prompt)
+                if diff is not None:
+                    implementDiff(diff)
+                else:
+                    print("No unified diff found in output log of prompt with ID " + promptid)
+            else:
+                print("Prompt with ID " + promptid + " not found in directory.")
         
-        entry = input("Select a menu option:")
+        # Show main menu again
+        displayMainMenu()
+        
+        entry = input("Select a menu option: ")
     
 if __name__ == "__main__":
     main()

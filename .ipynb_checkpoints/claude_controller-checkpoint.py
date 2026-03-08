@@ -118,6 +118,10 @@ class PromptDict:
     def getPrompt(self, index: int):
         return self.prompts[index]
     
+    
+    def findPrompt(self, prompt_id: str):
+        
+    
     # move a specific prompt with index i to another index j, shifting all the other prompts without reordering them
     def relabelIndices():
         # implement here
@@ -166,13 +170,14 @@ def main():
     print("3. View all prompts")
     print("4. [PLACEHOLDER] for analysis tools")
     print("5. Export current directory")
+    print("6. Print specific prompt")
     print("Press 'q' to quit")
     print("\n")
     
     entry = input("Select a menu option:")
     while entry != "q":
         selection = int(entry)
-        while selection not in range(1, 6):
+        while selection not in range(1, 10):
             selection = input("Invalid option.  Select again:")
         
         # Load new prompt archive from JSONL file into prompt directorys
@@ -205,6 +210,10 @@ def main():
             # Check if file already exists in run_archives, to avoid overwriting
             directory.exportToJsonl(filepath)
             print("Successfully exported current directory to " + filepath)
+        
+        # Prints a specific prompt the user specifies
+        if selection == 6:
+            promptid = input("Enter prompt ID to be printed")
         
         # Show main menu again
         print("Main menu options:")
