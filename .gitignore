@@ -1,2 +1,5 @@
 run_archives
-Agc_claude/Claude_Sandbox
+Agc_claude/Claude_Sandbox/*
+!Agc_claude/Claude_Sandbox/Analysis.ipynb
+.claude/skills/*
+!.claude/skills/cabinetry-analysis

@@ -1,3 +1,91 @@
-TO BE ADDED
-This will create the config.yml file based on the rest of the analysis.
-To be implemented last, this is the most difficult.
+Use the information given to you in the notebook Analysis.ipynb in order to create a .yml file representing the configuration of the statistical analysis.  Put this new file in the sandbox, do not modify any other files, and name the file config_test.yml.  Below is a brief summary of general guidelines you should follow, the syntax and exact structure you should follow for creating the .yml file, and the meanings of every entry in the config file.
+
+General info:
+POI:  Signal normalization
+Regions:  Just one signal region
+Samples:  Data, Signal MC, Background ZZ*, Background Z ttbar
+Systematic Uncertainties:  scale factor variation, 4l mass variation, ZZ normalization
+Norm Factors:  signal normalization
+
+## Syntax to be followed
+
+
+General:
+  Measurement: "<measurement_name>"
+  POI: "<POI>"
+  HistogramFolder: "<histogram_directory>"
+  InputPath: "<hist_root_filename>.root:{SamplePath}{VariationPath}"
+  VariationPath: ""
+
+Regions:
+  - Name: <Region_1>
+  - Filter: <region_selection> [if more than one region]
+
+[add more regions as necessary]
+
+Samples:
+  - Name: "Data"
+    SamplePath: "<data_path>"
+    Data: True
+
+  - Name: "Signal"
+    SamplePath: "<signal_path>"
+
+  - Name: "Background <bkg_1_name>"
+    SamplePath: "<bkg_1_path>"
+
+[add more background processes as necessary]
+
+Systematics:
+  - Name: "<shape_syst_name>"
+    Type: "NormPlusShape"
+    Up:
+      VariationPath: “<up_variation_suffix>"
+    Down:
+      VariationPath: “<down_variation_suffix>"
+
+[more sources of systematic uncertainty affecting distribution shape]
+
+  - Name: "<norm_syst_name>"
+    Type: "Normalization"
+    Up:
+      Normalization: <up_shift>
+    Down:
+      Normalization: <down_shift>
+    Samples: "<relevant_samples>"
+
+[more sources of systematic uncertainty affecting only normalization]
+
+
+NormFactors:
+  - Name: <norm_factor_name>
+    Samples: <nf_sample>
+    Nominal: 1.0
+    Bounds: [<nf_lbnd>, <nf_hbnd>]
+
+[more NormFactors which scale specific samples without prior constraints]
+
+
+
+Meanings of the parameters:
+<measurement_name> = string, name of the measurement being done (Ex: CabinetryHZZAnalysis)
+<POI> = parameter of interest, will be specified by the user for now
+<histogram_directory> = directory where histograms are to be saved, and directory where histograms (or ntuples are to be read from) are taken from for input
+<hist_root_filename> = root file where histograms or ntuples are to be taken from.
+<Region_1> = name of Region 1 (example: signal region.  Other regions might be control region, validation region, etc.)
+<region_selection> = criteria events must satisfy to be in this region (example: pT > 100).  This parameter is unnecessary if there is only one region.
+<data_path> = path to histogram (the name of the histogram in the .root file) where data is stored (usually it is called just “data”.  Check the earlier code where the histograms were created.)
+<signal_path> = path to histogram where MC simulated signal is stored (usually it is called just “signal”.  Check the earlier code where the histograms were created.)
+<bkg_1_name> = name of background process 1 that is being modelled
+<bkg_1_path> = path to histogram where MC simulated background process 1 is stored (usually it will be called the name of the particular background process we are considering, such as “ZZ” or “Z_tt”.  Check the earlier code where the histograms were created.)
+<shape_syst_name> = unique name identifying the systematic uncertainty (e.g. JES, TauID, PDF). This label corresponds to a single nuisance parameter in the fit and should reflect the physical source of uncertainty.
+<up_variation_suffix> = suffix appended to the nominal histogram path to access the +1σ (upward) variation of this systematic. It points to a histogram where the distribution has been recomputed under this shifted condition.
+<down_variation_suffix> = suffix appended to access the −1σ (downward) variation histogram. Together with the up variation, this defines how the shape and normalization change as the nuisance parameter varies.
+<norm_syst_name> = unique name for a normalization-only systematic (e.g. lumi, ZZ_norm). This defines a nuisance parameter that scales yields without altering histogram shapes.
+<up_shift> = fractional change in yield for a +1σ shift (e.g. 0.1 means +10%). This defines how much the sample normalization increases when the nuisance parameter is +1.
+<down_shift> = fractional change for a −1σ shift (e.g. -0.1 means −10%). Typically symmetric with the up shift, but not required to be.
+<relevant_samples> = sample or list of samples affected by this systematic (e.g. "Background ZZ" or ["ttbar", "Wjets"]). This restricts where the nuisance parameter is applied in the model.
+<norm_factor_name> = name of the normalization factor (e.g. mu_signal, ttbar_norm). This becomes a free parameter in the fit and may represent the parameter of interest (POI) or a floating background normalization.
+<nf_sample> = sample (or list of samples) that this NormFactor scales. It defines which components of the model are multiplied by this parameter during the fit.
+<nf_lbnd> = lower bound allowed for the NormFactor during the fit (e.g. 0). This constrains the physically allowed range of the parameter.
+<nf_hbnd> = upper bound for the NormFactor (e.g. 10). This prevents unphysical or numerically unstable solutions during the likelihood maximization.
