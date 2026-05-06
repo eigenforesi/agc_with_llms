@@ -45,11 +45,14 @@ def getIDQuery(directory: PromptDict):
         except FileNotFoundError:
             print("File not found.")
             return None, None
+    else:
+        print("Invalid input.")
+        return None, None
 
 # Give the query to Claude and get output and error logs, save as Prompt object
 def promptClaude(identifier: str, query: str):
     process = subprocess.run(
-        ["claude", "-p", query + "\n" + prompt_prefix],
+        ["claude", "-p", query + "\n"],
         capture_output=True,
         text=True
     )

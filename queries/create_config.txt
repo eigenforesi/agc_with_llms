@@ -1,11 +1,13 @@
-Use the information given to you in the notebook Analysis.ipynb in order to create a .yml file representing the configuration of the statistical analysis.  Put this new file in the sandbox, do not modify any other files, and name the file config_test.yml.  Below is a brief summary of general guidelines you should follow, the syntax and exact structure you should follow for creating the .yml file, and the meanings of every entry in the config file.
+Use the information given to you in the notebook Analysis.ipynb in order to create a .yml file representing the configuration of the statistical analysis.  
+Put this new file in the sandbox, do not modify any other files, and name the file config_test.yml.  
+Below is a brief summary of general guidelines you should follow, the syntax and exact structure you should follow for creating the .yml file, and the meanings of every entry in the config file.
 
 General info:
 POI:  Signal normalization
 Regions:  Just one signal region
 Samples:  Data, Signal MC, Background ZZ*, Background Z ttbar
-Systematic Uncertainties:  scale factor variation, 4l mass variation, ZZ normalization
-Norm Factors:  signal normalization
+Systematics:  scale factor variation, 4l mass variation, ZZ normalization
+NormFactors:  signal normalization
 
 ## Syntax to be followed
 

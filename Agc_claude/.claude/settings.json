@@ -1,0 +1,6 @@
+{
+  "additionalDirectories": ["Claude_Sandbox"],
+  "permissions": {
+    "allow": ["Read", "Edit(/Claude_Sandbox/**)", "Bash"]
+  }
+}

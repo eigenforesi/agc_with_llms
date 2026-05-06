@@ -1,0 +1,10 @@
+Implement the statistical analysis with cabinetry for the existing pipeline in Analysis.ipynb.
+Create a new code cell for each major step.
+Use the following general information to guide your implementation:
+
+General info:
+POI:  Signal normalization
+Regions:  Just one signal region
+Samples:  Data, Signal MC, Background ZZ*, Background Z ttbar
+Systematics:  scale factor variation, 4l mass variation, ZZ normalization
+NormFactors:  signal normalization

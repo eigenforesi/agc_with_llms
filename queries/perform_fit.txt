@@ -1,2 +1,59 @@
-TO BE ADDED
-This will take a workspace and perform the fit on it, enabling extraction of results
+The code given to you so far in Analysis.ipynb is an anlysis pipeline that is written up until the creation of a statistical workspace.
+This statistical workspace contains information on the model for our data, and the data itself.
+You will now write code to take this workspace and actually perform the fit, generating output plots for the user to analyse the results.
+
+Start a new cell in the Analysis.ipynb file and implement as follows:
+
+Write the code snippet `model, data = cabinetry.model_utils.model_and_data(<workspace>)`.  This creates model and data objects
+The argument <workspace> is to be replaced by the name of the cabinetry workspace objects previously created.
+
+Then perform the fit using `fit_results = cabinetry.fit.fit(model, data)`.
+
+Now we create plots showing the fit results:
+There are multiple plots we might want to examine.
+
+To make pull plot:  
+cabinetry.visualize.pulls(
+    fit_results, exclude="Signal_norm", close_figure=False, save_figure=False
+)
+utils.save_figure("pulls")
+
+The above code creates both a .pdf and a .png file of the plot.
+If we want only a .pdf, omit the last line beginning with `utils` and set save_figure to True in the cabinetry.visualize.pulls() line.
+By default, save as both a .pdf and .png unless otherwise specified.
+
+To make plot visualizing correlations between parameters:
+cabinetry.visualize.correlation_matrix(
+    fit_results, pruning_threshold=0.15, close_figure=False, save_figure=False
+)
+utils.save_figure("correlation_matrix")
+
+Follow same changes as before in the case that we want only a .pdf plot.
+
+Now we want to actually visualize our fit with the data.  Create a post-fit model using:
+postfit_model = cabinetry.model_utils.prediction(model, fit_results=fit_results)
+
+We now need to create an object called plot_config.
+The plot_config object should be a python dictionary object where there is a key called "Regions".
+The value for this key should be a list (syntax as [item1, item2, etc...]) where every element of the list is a dictionary.
+In this dictionary, there should be a "Name" key with the value having the name of the region (from the config),
+and a "Binning" key with the value having a list representing the binning (easiest to make this from a linspace).
+Create the plot_config object first (for the signal region).
+Then plot the data and fit in this region using (this will output a list of dictionaries each containing a figure and region name):
+
+figure_dict = cabinetry.visualize.data_mc(
+    postfit_model, data, config=plot_config, save_figure=False
+)
+
+For each figure, give it a meaningful x-axis label.  This can be done like so:
+
+fig = figure_dict[i]["figure"]
+fig.axes[1].set_xlabel("<title of quantity being plotted>")
+
+i indexes the particular plot being made as listed in the figure_dict list.
+
+Then save and export this figure like so:
+utils.save_figure("<Descriptive name for the post-fit plot in this region>")
+
+
+For each new plot being made, start a new cell for better organization.
